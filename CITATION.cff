@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+message: "Si usas este software, cítalo así. Cita también a FlyWire, de donde vienen los datos (ver README)."
+title: "Asteroides Drosophila: un juego pilotado por un subcircuito del conectoma de FlyWire"
+type: software
+version: 1.0.0
+date-released: 2026-11-23
+license: MIT
+repository-code: "https://github.com/<TU-USUARIO>/asteroides-drosophila"
+abstract: >-
+  Juego tipo Asteroides pilotado por 2 688 neuronas con picos conectadas con sinapsis reales
+  de un subcircuito del conectoma de cerebro completo de Drosophila melanogaster (FlyWire, FAFB v783):
+  neuronas columnares del ojo como entradas, neuronas intermedias y cuatro tipos de neuronas descendentes
+  como salidas. Es un modelo simplificado con fines educativos y de exploración, no una simulación
+  validada del comportamiento de la mosca.
+keywords:
+  - Drosophila melanogaster
+  - connectome
+  - FlyWire
+  - spiking neural network
+  - educational
+authors:
+  - family-names: "<TU APELLIDO>"
+    given-names: "<TU NOMBRE>"
+    # orcid: "https://orcid.org/0000-0000-0000-0000"

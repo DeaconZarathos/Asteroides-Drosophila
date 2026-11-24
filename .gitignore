@@ -1,0 +1,18 @@
+# Tablas originales de FlyWire/Codex: no se suben (pesan mucho y tienen sus propias condiciones).
+*.csv
+*.csv.gz
+*.parquet
+connections*
+classification*
+column_assignment*
+consolidated_cell_types*
+visual_neuron_types*
+names.csv*
+
+# Entornos y temporales
+venv/
+.venv/
+__pycache__/
+node_modules/
+.DS_Store
+Thumbs.db
