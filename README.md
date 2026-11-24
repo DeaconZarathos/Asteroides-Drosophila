@@ -4,7 +4,7 @@ Un juego tipo Asteroides que **no controla una persona**, sino un subcircuito de
 
 > **English summary.** A browser Asteroids game piloted by a spiking neural network wired with real synapses from a 2,688-neuron subcircuit of the FlyWire *Drosophila* whole-brain connectome (FAFB v783): eye-column neurons as inputs, intermediate neurons, and four descending-neuron types as outputs. It is a simplified educational model, **not** a validated simulation of fly behaviour. Single self-contained HTML file; no server needed. Docs below are in Spanish.
 
-**Demo:** abre `docs/index.html` en un navegador (Chrome, Edge o Firefox). Es un solo archivo y no necesita internet ni servidor. Con GitHub Pages activado (carpeta `/docs`) queda en `https://DeaconZarathos.github.io/asteroides-drosophila/`.
+**Demo:** abre `docs/index.html` en un navegador (Chrome, Edge o Firefox). Es un solo archivo y no necesita internet ni servidor. Con GitHub Pages activado (carpeta `/docs`) queda en `https://deaconzarathos.github.io/Asteroides-Drosophila/`.
 
 ## Qué verás en pantalla
 
