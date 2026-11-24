@@ -5,7 +5,7 @@ type: software
 version: 1.0.0
 date-released: 2026-11-23
 license: MIT
-repository-code: "https://github.com/DeaconZarathos/asteroides-drosophila"
+repository-code: "https://github.com/DeaconZarathos/Asteroides-Drosophila"
 abstract: >-
   Juego tipo Asteroides pilotado por 2 688 neuronas con picos conectadas con sinapsis reales
   de un subcircuito del conectoma de cerebro completo de Drosophila melanogaster (FlyWire, FAFB v783):
