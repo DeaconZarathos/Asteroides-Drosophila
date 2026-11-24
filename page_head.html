@@ -1,0 +1,195 @@
+<title>Asteroides Drosophila</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: pantalla de juego a la izquierda, cerebro en anillo a la derecha; controles y cableado debajo.
+   Un solo mundo visual (oscuro, fluorescencia de calcio): verde GCaMP = neuronas, ámbar = nave y motoneuronas, rosa = inhibición. */
+:root {
+  --bg: #050b0a;
+  --panel: #0a1413;
+  --line: #1a2c28;
+  --fg: #d9e8df;
+  --muted: #8aa096;
+  --gcamp: #7dffa0;
+  --ship: #ffb347;
+  --inh: #ff6f8a;
+  --rock: #9dc2b4;
+  --display: "Bricolage Grotesque", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  color-scheme: dark;
+}
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font: 15px/1.55 var(--display);
+  padding-block: 22px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 1180px; margin: 0 auto; display: grid; gap: 22px; }
+.top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px 28px; }
+.top > div { min-width: 0; }
+h1 { margin: 0; font-size: clamp(1.8rem, 4.4vw, 2.7rem); line-height: 1.05; font-weight: 700; letter-spacing: -0.025em; text-wrap: balance; }
+.sub { margin: 8px 0 0; color: var(--muted); max-width: 58ch; }
+.stats { display: flex; flex-wrap: wrap; gap: 8px; }
+.stat { border: 1px solid var(--line); background: var(--panel); padding: 7px 12px; min-width: 82px; }
+.stat b { display: block; font: 500 11px/1.2 var(--mono); letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted); }
+.stat span { font: 500 21px/1.3 var(--mono); font-variant-numeric: tabular-nums; }
+
+.stage { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.screen, .brainbox { border: 1px solid var(--line); background: #030706; min-width: 0; }
+canvas { display: block; width: 100%; height: auto; }
+.brainbox { padding: 10px 10px 12px; display: grid; gap: 10px; background: var(--panel); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font: 400 12px/1.4 var(--mono); color: var(--muted); }
+.legend i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; }
+.rasterwrap { display: grid; gap: 4px; }
+.cap { font: 500 11px/1.3 var(--mono); letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted); }
+#raster { height: 112px; image-rendering: pixelated; background: #030706; }
+
+.panel { border: 1px solid var(--line); background: var(--panel); padding: 16px; display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.group { display: grid; gap: 10px; align-content: start; min-width: 0; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; }
+.btn {
+  font: 600 13px/1.2 var(--mono); color: var(--fg); background: transparent;
+  border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; min-height: 40px; cursor: pointer;
+}
+.btn:hover { border-color: var(--muted); }
+.btn:focus-visible { outline: 2px solid var(--gcamp); outline-offset: 2px; }
+.btn.mode[aria-pressed="true"] { background: var(--gcamp); border-color: var(--gcamp); color: #04120a; }
+.btn.les[aria-pressed="true"] { border-color: var(--inh); color: var(--inh); background: rgba(255, 111, 138, 0.12); }
+.btn.tog[aria-pressed="true"] { border-color: var(--ship); color: var(--ship); }
+.gainrow { display: grid; grid-template-columns: auto minmax(0, 1fr) 48px; gap: 10px; align-items: center; }
+.gainrow input[type="range"] { width: 100%; min-width: 0; accent-color: var(--gcamp); }
+.check { display: flex; gap: 8px; align-items: center; font: 400 12px/1.4 var(--mono); color: var(--fg); cursor: pointer; }
+.check input { accent-color: var(--gcamp); width: 16px; height: 16px; flex: none; }
+.hint { margin: 0; font: 400 12px/1.5 var(--mono); color: var(--muted); }
+.pad { display: none; gap: 8px; }
+body.manual .pad { display: flex; flex-wrap: wrap; }
+.pad .btn { min-width: 54px; min-height: 54px; touch-action: none; user-select: none; -webkit-user-select: none; }
+
+.meter { display: grid; grid-template-columns: 104px minmax(0, 1fr) 58px; gap: 10px; align-items: center; font: 400 12px/1.3 var(--mono); }
+.meter .track { height: 8px; background: var(--line); }
+.meter .fill { height: 100%; width: 0; background: var(--ship); }
+.meter .val { text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); }
+.meter.off .fill { background: var(--inh); }
+.meter.off .lab { color: var(--inh); text-decoration: line-through; }
+
+.wiring { display: grid; gap: 18px 28px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.wiring h3 { margin: 0 0 4px; font: 600 12px/1.3 var(--mono); letter-spacing: 0.09em; text-transform: uppercase; color: var(--gcamp); }
+.wiring p { margin: 0; color: var(--fg); max-width: 52ch; }
+.note { margin: 0; color: var(--muted); max-width: 86ch; border-top: 1px solid var(--line); padding-top: 14px; }
+
+@media (max-width: 860px) {
+  .stage { grid-template-columns: minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) { .btn { transition: none; } }
+</style>
+
+<main class="wrap">
+  <header class="top">
+    <div>
+      <h1>Asteroides Drosophila</h1>
+      <p class="sub">Neuronas con picos, conectadas con sinapsis reales del conectoma de FlyWire, pilotan la nave. Nadie toca los controles.</p>
+    </div>
+    <div class="stats" aria-live="off">
+      <div class="stat"><b>Puntos</b><span id="st-score">0</span></div>
+      <div class="stat"><b>Vidas</b><span id="st-lives">3</span></div>
+      <div class="stat"><b>Oleada</b><span id="st-wave">1</span></div>
+      <div class="stat"><b>Mejor</b><span id="st-best">0</span></div>
+      <div class="stat"><b>Picos/s</b><span id="st-sps">0</span></div>
+    </div>
+  </header>
+
+  <section class="stage">
+    <div class="screen"><canvas id="game" width="1600" height="1200" aria-label="Juego de asteroides controlado por la red neuronal"></canvas></div>
+    <div class="brainbox">
+      <canvas id="brain" width="1000" height="1000" aria-label="Red neuronal: cada punto es una neurona y se enciende cuando dispara"></canvas>
+      <div class="legend">
+        <span><i style="background:#9dc2b4"></i>ojo (sensorial)</span>
+        <span><i style="background:#7dffa0"></i>excitadora</span>
+        <span><i style="background:#ff6f8a"></i>inhibidora</span>
+        <span><i style="background:#ffb347"></i>descendente (motora)</span>
+      </div>
+      <div class="rasterwrap">
+        <div class="cap" id="rasterCap">Actividad de las 282 neuronas, últimos 5 s</div>
+        <canvas id="raster" width="320" height="282" aria-label="Raster de picos"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="group">
+      <div class="cap">Quién juega</div>
+      <div class="row">
+        <button class="btn mode" id="modeFly" type="button" aria-pressed="true">Cerebro de mosca</button>
+        <button class="btn mode" id="modeManual" type="button" aria-pressed="false">Manual</button>
+      </div>
+      <div class="row">
+        <button class="btn" id="btnNew" type="button">Nueva red generada</button>
+        <button class="btn" id="btnRestart" type="button">Reiniciar partida</button>
+        <button class="btn tog" id="btnPause" type="button" aria-pressed="false">Pausa</button>
+      </div>
+      <p class="hint" id="hint">El cerebro juega solo. «Nueva red generada» crea una red con otro cableado, y no todas juegan igual.</p>
+      <div class="pad" aria-label="Controles táctiles">
+        <button class="btn" id="padL" type="button" aria-label="Girar a la izquierda">◀</button>
+        <button class="btn" id="padU" type="button" aria-label="Empuje">▲</button>
+        <button class="btn" id="padR" type="button" aria-label="Girar a la derecha">▶</button>
+        <button class="btn" id="padF" type="button" aria-label="Disparar">●</button>
+      </div>
+    </div>
+
+    <div class="group">
+      <div class="cap">Silenciar neuronas descendentes</div>
+      <div class="row">
+        <button class="btn les" type="button" data-pool="0" aria-pressed="false">Giro izq.</button>
+        <button class="btn les" type="button" data-pool="1" aria-pressed="false">Giro der.</button>
+        <button class="btn les" type="button" data-pool="2" aria-pressed="false">Empuje</button>
+        <button class="btn les" type="button" data-pool="3" aria-pressed="false">Disparo</button>
+      </div>
+      <p class="hint">Apaga todas las neuronas de un grupo motor, como una lesión o un silenciamiento optogenético, y mira cómo cambia la conducta.</p>
+    </div>
+
+    <div class="group">
+      <div class="cap">Conectoma real de FlyWire</div>
+      <div class="row">
+        <button class="btn" id="btnLoad" type="button">Cargar subcircuito (.json)</button>
+        <button class="btn" id="btnSynth" type="button">Usar red generada</button>
+        <input type="file" id="fileConn" accept=".json,.gz,application/json,application/gzip" hidden>
+      </div>
+      <div class="gainrow">
+        <label for="gain" class="cap">Ganancia sináptica</label>
+        <input type="range" id="gain" min="0.005" max="0.1" step="0.002" value="0.034">
+        <span class="hint" id="gainVal">0.034</span>
+      </div>
+      <label class="check" id="adaptRow" for="adapt" hidden><input type="checkbox" id="adapt" checked> Lectura adaptativa de las salidas (cada grupo respecto a su actividad reciente)</label>
+      <label class="check" id="flipRow" for="flip" hidden><input type="checkbox" id="flip"> Invertir el eje horizontal del ojo (adelante y atrás)</label>
+      <p class="hint" id="connStatus">Red generada con reglas de cableado, 282 neuronas. Carga el JSON que produce extraccion.py para usar neuronas reales de FlyWire.</p>
+    </div>
+
+    <div class="group">
+      <div class="cap">Tasa de disparo de cada grupo</div>
+      <div class="meter" id="m0"><span class="lab">giro izq.</span><div class="track"><div class="fill"></div></div><span class="val">0 Hz</span></div>
+      <div class="meter" id="m1"><span class="lab">giro der.</span><div class="track"><div class="fill"></div></div><span class="val">0 Hz</span></div>
+      <div class="meter" id="m2"><span class="lab">empuje</span><div class="track"><div class="fill"></div></div><span class="val">0 Hz</span></div>
+      <div class="meter" id="m3"><span class="lab">disparo</span><div class="track"><div class="fill"></div></div><span class="val">0 Hz</span></div>
+    </div>
+  </section>
+
+  <section class="wiring">
+    <div>
+      <h3>Ojos</h3>
+      <p id="w1">24 neuronas sensoriales: 12 sectores alrededor de la nave y 2 distancias. Cuanto más cerca está un asteroide en un sector, más rápido dispara esa neurona. Los sectores se ven como destellos verdes alrededor de la nave.</p>
+    </div>
+    <div>
+      <h3>Interneuronas</h3>
+      <p id="w2">170 excitadoras y 56 inhibidoras con campos receptivos angulares, conexiones locales en anillo, conexiones al azar de cola pesada e inhibición lateral que enfrenta izquierda con derecha.</p>
+    </div>
+    <div>
+      <h3>Descendentes</h3>
+      <p id="w3">Cuatro grupos de 8 neuronas: giro izquierdo, giro derecho, empuje y disparo. La velocidad de giro sale de la diferencia entre los dos grupos de giro, y la nave dispara cuando el grupo de disparo supera 15 Hz.</p>
+    </div>
+  </section>
+  <p class="note" id="note">Esta no es la conectividad real de una mosca. Es una red de 282 neuronas con unas 4 400 sinapsis, generada con reglas de cableado de ese tipo de circuito (neuronas integradoras con fugas, sinapsis de 5 ms, ruido de fondo). El conectoma completo de FlyWire tiene alrededor de 139 000 neuronas y más de 50 millones de sinapsis. Un subcircuito real de ese conectoma sería el siguiente paso.</p>
+</main>
+
+<script>

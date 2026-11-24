@@ -4,7 +4,7 @@ Un juego tipo Asteroides que **no controla una persona**, sino un subcircuito de
 
 > **English summary.** A browser Asteroids game piloted by a spiking neural network wired with real synapses from a 2,688-neuron subcircuit of the FlyWire *Drosophila* whole-brain connectome (FAFB v783): eye-column neurons as inputs, intermediate neurons, and four descending-neuron types as outputs. It is a simplified educational model, **not** a validated simulation of fly behaviour. Single self-contained HTML file; no server needed. Docs below are in Spanish.
 
-**Demo:** abre `docs/index.html` en un navegador (Chrome, Edge o Firefox). Es un solo archivo y no necesita internet ni servidor. Con GitHub Pages activado (carpeta `/docs`) queda en `https://deaconzarathos.github.io/Asteroides-Drosophila/`.
+**Demo:** abre `index.html` en un navegador (Chrome, Edge o Firefox). Es un solo archivo y no necesita internet ni servidor. Con GitHub Pages activado (carpeta raíz) queda en `https://deaconzarathos.github.io/Asteroides-Drosophila/`.
 
 ## Qué verás en pantalla
 
@@ -47,36 +47,39 @@ Un juego tipo Asteroides que **no controla una persona**, sino un subcircuito de
 
 ```bash
 # Abrir el juego
-abre docs/index.html en el navegador
+abre index.html en el navegador
 
 # Simular partidas sin pantalla (requiere Node.js)
-node tools/simular.js data/subcircuito.json 0.034 120 3
+node simular.js subcircuito.json 0.034 120 3
 #   FLIP=1 invierte el eje del ojo;  ADAPT=0 usa umbrales fijos
 
-# Reconstruir docs/index.html desde src/ y data/ (requiere Python 3)
-python3 tools/build.py
+# Reconstruir index.html desde page_head.html, core.js, ui.js y subcircuito.json (requiere Python 3)
+python3 build.py
 
 # Regenerar el subcircuito desde las tablas de FlyWire Codex (requiere pandas)
-python3 tools/extraccion.py --connections connections_princeton.csv.gz \
+python3 extraccion.py --connections connections_princeton.csv.gz \
   --cell-types consolidated_cell_types.csv.gz --visual visual_neuron_types.csv.gz \
   --columns column_assignment.csv.gz --classification classification.csv.gz \
-  --out data/subcircuito.json
+  --out subcircuito.json
 ```
 
-Para probar otro subcircuito sin reconstruir nada, usa el botón "Cargar subcircuito (.json)" de la página. Detalles del formato y de los criterios de selección en `data/README.md`.
+Para probar otro subcircuito sin reconstruir nada, usa el botón "Cargar subcircuito (.json)" de la página. Detalles del formato y de los criterios de selección en `DATOS.md`.
 
 ## Estructura
 
 ```
-docs/index.html      la página completa (un solo archivo, con el subcircuito incluido)
-src/                 código fuente: núcleo de la red y del juego, interfaz y plantilla
-data/                subcircuito.json y su descripción
-tools/               extraccion.py, build.py, simular.js
+index.html           la página completa (un solo archivo, con el subcircuito incluido)
+core.js, ui.js,      código fuente: núcleo de la red y del juego, interfaz y plantilla
+  page_head.html
+subcircuito.json     el subcircuito de FlyWire; formato y criterios en DATOS.md
+extraccion.py        genera el subcircuito a partir de las tablas de FlyWire Codex
+build.py             reconstruye index.html
+simular.js           simula partidas sin pantalla
 ```
 
 ## Datos y citas
 
-Los datos neuronales vienen de FlyWire (versión FAFB v783) y de las tablas de FlyWire Codex. **Cita a FlyWire según las guías de citación** de la página de descargas de Codex (https://codex.flywire.ai/api/download), que incluyen las publicaciones del conectoma, de las anotaciones y de las predicciones de neurotransmisor. Revisa la licencia que FlyWire indica antes de redistribuir datos derivados. Ver `data/README.md`.
+Los datos neuronales vienen de FlyWire (versión FAFB v783) y de las tablas de FlyWire Codex. **Cita a FlyWire según las guías de citación** de la página de descargas de Codex (https://codex.flywire.ai/api/download), que incluyen las publicaciones del conectoma, de las anotaciones y de las predicciones de neurotransmisor. Revisa la licencia que FlyWire indica antes de redistribuir datos derivados. Ver `DATOS.md`.
 
 La idea de simular el cerebro de la mosca con neuronas de umbral a partir del conectoma sigue la línea de trabajos publicados con el conectoma de FlyWire; este proyecto es mucho más pequeño y simple y no reproduce ninguno de ellos.
 
